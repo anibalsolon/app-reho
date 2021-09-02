@@ -24,4 +24,3 @@ RUN /opt/afni/3dReHo
 RUN mkdir /scratch
 WORKDIR /scratch
 
-CMD ["/opt/afni/3dReHo"]

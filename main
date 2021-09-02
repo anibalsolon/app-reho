@@ -9,6 +9,7 @@ nhood=$(jq -r .neighborhood config.json)
 
 time singularity run -e \
     docker://anibalsolon/app-reho:v0.0.1 \
+    /opt/afni/3dReHo \
     -inset $input \
     -prefix reho.nii.gz \
     -nneigh $nhood

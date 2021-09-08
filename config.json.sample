@@ -1,4 +1,6 @@
 {
     "bold": "bold.nii.gz",
-    "neighborhood": 27
+    "mask": "mask.nii.gz",
+    "neighborhood": 27,
+    "fwhm": 4
 }

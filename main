@@ -4,15 +4,44 @@
 
 set -xe
 
-input=$(jq -r .bold config.json)
-nhood=$(jq -r .neighborhood config.json)
+INPUT=$(jq -r .bold config.json)
+MASK=$(jq -r .mask config.json)
+NHOOD=$(jq -r .neighborhood config.json)
+FWHM=$(jq -r .fwhm config.json)
+
+if [ $MASK == "null" ]; then
+    MASK=""
+fi
+
+OPTS=""
+if [ ! -z "$MASK" ]; then
+    OPTS="$OPTS -mask $MASK"
+fi
+
+mkdir -p reho
 
 time singularity run -e \
     docker://anibalsolon/app-reho:v0.0.1 \
     /opt/afni/3dReHo \
-    -inset $input \
-    -prefix reho.nii.gz \
-    -nneigh $nhood
+    -inset $INPUT \
+    -prefix reho/reho.nii.gz \
+    -nneigh $NHOOD \
+    $OPTS
 
-mkdir -p reho
-mv reho.nii.gz reho/reho.nii.gz
+time singularity run -e \
+    docker://anibalsolon/app-reho:v0.0.1 \
+        sh ./zscore.sh reho/reho.nii.gz reho/reho_norm.nii.gz
+
+mv reho/reho_norm.nii.gz reho/reho.nii.gz
+
+if [ "$FWHM" != "0" ]; then
+    time singularity run -e \
+        docker://anibalsolon/app-reho:v0.0.1 \
+        /opt/afni/3dBlurToFWHM \
+        -input reho/reho.nii.gz \
+        -prefix reho/reho_smooth.nii.gz \
+        -FWHM $FWHM \
+        $OPTS
+
+    mv reho/reho_smooth.nii.gz reho/reho.nii.gz
+fi
